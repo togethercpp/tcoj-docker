@@ -1,234 +1,161 @@
-# VNOJ Docker
+# Hướng dẫn cài đặt hệ thống chấm điểm trực tuyến TCOJ sử dụng Docker
+## Chuẩn bị
+## Cài đặt Docker và Docker-Compose
+Thực hiện trên Server
+### Cài đặt Docker 
+> Tham khảo cách cài đặt từ [document chính thức của Docker](https://docs.docker.com/engine/install/ubuntu/)
 
-This repository contains the Docker files to run the [VNOJ](https://github.com/VNOI-Admin/OJ).
-
-Based on [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker).
-
-## Installation
-
-First, [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed. Installation instructions can be found on their respective websites.
-
-Clone the repository:
-
-```sh
-$ git clone --recursive https://github.com/VNOI-Admin/vnoj-docker.git
-$ cd vnoj-docker/dmoj
+Set up Docker's apt repository.
 ```
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-From now on, it is assumed you are in the `dmoj` directory.
-
-Initialize the setup by moving the configuration files into the submodule and creating the necessary directories:
-
-```sh
-$ ./scripts/initialize
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
-
-Next, configure the environment variables in the files in `dmoj/environment/`. Create the files from the examples:
-
-```sh
-$ cp environment/mysql-admin.env.example environment/mysql-admin.env
-$ cp environment/mysql.env.example environment/mysql.env
-$ cp environment/site.env.example environment/site.env
+Install the Docker packages.
 ```
-
-Then, set the MYSQL passwords in `mysql.env` and `mysql-admin.env`, and the host and secret key in `site.env`. Also, configure the `server_name` directive in `dmoj/nginx/conf.d/nginx.conf`.
-
-Next, build the images:
-
-```sh
-$ docker compose build
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io 
 ```
+> Note: Hiện tại, chỉ có sudo mới có thể chạy các lệnh của Docker. Để các user khác cũng chạy được, cần thêm `sudo` vào trước các câu lệnh. Các lỗi như "docker: Got permission denied while trying to connect to the Docker daemon.." thường là do thiếu sudo trước câu lệnh.
 
-Start up the site, so you can perform the initial migrations and generate the static files:
-
-```sh
-$ docker compose up -d site db redis celery
+### Cài đặt Docker-Compose
+> Có thể tham khảo thêm tại [Install the Compose plugin](https://docs.docker.com/compose/install/linux/)
 ```
-
-You will need to generate the schema for the database, since it is currently empty:
-
-```sh
-$ ./scripts/migrate
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```
-
-You will also need to generate the static files:
-
-```sh
-$ ./scripts/copy_static
+## Cài đặt site
+### Tải về mã nguồn TCOJ Docker
 ```
-
-Finally, the VNOJ comes with fixtures so that the initial install is not blank. They can be loaded with the following commands:
-
-```sh
-$ ./scripts/manage.py loaddata navbar
-$ ./scripts/manage.py loaddata language_small
-$ ./scripts/manage.py loaddata demo
+git clone --recursive https://github.com/togethercpp/tcoj-docker.git
+cd tcoj-docker/dmoj
 ```
+Kể từ lúc này, các câu lệnh đằng sau sẽ có thư mục hiện hành là `/dmoj`
+### Cấu hình môi trường để sử dụng Docker
+Thay đổi các thông số cài đặt nhằm phù hợp với mục đích sử dụng và tăng tính bảo mật cho webserver.
+Có 3 nơi mà bạn có thể chỉnh sửa:
+1. `dmoj/environment/`
 
-Keep in mind that the demo fixture creates a superuser account with a username and password of `admin`. You should change the user's password or remove the user entirely.
-
-You can also create a superuser account for yourself:
-
-```sh
-$ ./scripts/manage.py createsuperuser
+Nơi này chứa các biến môi trường để build Docker image.
+> Note: Đổi tên các file .example tương ứng thành: mysql-admin.env, mysql.env, site.env
+* mysql.env
 ```
-
-## Usage
-
-To start everything:
-
-```sh
-$ docker compose up -d
+MYSQL_DATABASE=dmoj
+MYSQL_USER=dmoj
+MYSQL_PASSWORD=deptraicogisai6969		#thay doi password
 ```
-
-To stop everything:
-
-```sh
-$ docker compose down
+* mysql-admin.env
 ```
-
-## Notes
-
-### Judge server
-
-The judge server is not included in this Docker setup. Please refer to [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
-
-The bridge instance is included in this Docker setup and should be running once you start everything.
-
-### Migrating
-
-As the VNOJ site is a Django app, you may need to migrate whenever you update. Assuming the site container is running, running the following command should suffice:
-
-```sh
-$ ./scripts/migrate
+MYSQL_ROOT_PASSWORD=deptraicogisai6969		#thay doi password
 ```
-
-### Managing Static Files
-
-If your static files ever change, you will need to rebuild them:
-
-```sh
-$ ./scripts/copy_static
+* site.env
 ```
-
-### Updating The Site
-
-Updating various sections of the site requires different images to be rebuilt.
-
-If any prerequisites were modified, you will need to rebuild most of the images:
-
-```sh
-$ docker compose up -d --build base site celery bridged wsevent
+HOST=oj.togethercpp.xyz				#thay bang IP cua Server hoac Domain
+SITE_FULL_URL=http://oj.togethercpp.xyz/				#thay bang IP cua Server hoac Domain
+MEDIA_URL=http://oj.togethercpp.xyz/				#thay bang IP cua Server hoac Domain
+DEBUG=0
+SECRET_KEY=deptraicogisai6969		#thay doi bang ma khoa tuy y
 ```
+2. `dmoj/nginx/conf.d/nginx.conf`
 
-If the static files are modified, read the section on [Managing Static Files](#managing-static-files).
+Cấu hình hình tên server_name thành IP của Server hoặc Domain
 
-If only the source code is modified, a restart is sufficient:
+3. `dmoj/local_settings.py`
 
-```sh
-$ docker compose restart site celery bridged wsevent
+Hầu hết các thông số đã được cấu hình sẵn. Nếu muốn thêm tính năng nào thì bỏ dấu comment tính năng đó. 
+
+Ví dụ: Để người dùng tự đăng ký tài khoản, tiến hành thêm các thông tin cấu hình email để thực hiện xác thực đăng ký tài khoản qua email (cần tạo mật khẩu ứng dụng cho email)
+
+### Build Docker Image
+Khởi tạo trước khi build
 ```
-
-### Multiple Nginx Instances
-
-The `docker-compose.yml` configures Nginx to publish to port 80. If you have another Nginx instance on your host machine, you may want to change the port and proxy pass instead.
-
-For example, a possible Nginx configuration file on your host machine would be:
-
+./scripts/initialize
 ```
-server {
-    listen 80;
-    listen [::]:80;
-
-    add_header X-UA-Compatible "IE=Edge,chrome=1";
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
-
-    location / {
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_set_header Host $http_host;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_pass http://127.0.0.1:10080/;
-    }
-}
+Build Docker Image
 ```
-
-In this case, the port that the Nginx instance in the Docker container is published to would need to be modified to `10080`.
-
-### Load balancing
-
-By default, all services (site, bridged, wsevent, db, celery, redis, etc.) run in the same machine. However, it is not ideal for handling a large number of users. In this case, you need to distribute the services to multiple servers. A typical setup would be:
-
-- One central server for nginx, db, redis, bridged, and wsevent
-- Multiple workers, each will run nginx, site, and celery
-
-#### Central server
-
-You need to configure `dmoj/nginx/conf.d/nginx.conf` to distribute traffic to workers. Refer to [Nginx docs](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for how to do it.
-
-A sample configuration:
-
+sudo docker-compose build
 ```
-upstream site {
-    ip_hash;
-    server srv1.example.com;
-    server srv2.example.com;
-    server srv3.example.com;
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-
-    location / {
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_set_header Host $http_host;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_pass http://site/;
-    }
-
-    location /event/ {
-        proxy_pass http://wsevent:15100/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 86400;
-    }
-
-    location /channels/ {
-        proxy_read_timeout 120;
-        proxy_pass http://wsevent:15102/;
-    }
-}
+Khởi động thành phần site để thực hiện cấu hình
 ```
-
-Uncomment `ports` blocks in `dmoj/docker-compose.yml`. You also need to open these ports for workers to connect to:
-
-- db: 3306
-- redis: 6379
-- bridged: 9998 9999
-- wsevent: 15100 15101 15102
-
-Now, let's start the services:
-
-```sh
-docker compose up -d nginx db redis bridged wsevent
+sudo docker-compose up -d site
 ```
+Khởi tạo dữ liệu cho Database
+```
+sudo ./scripts/migrate
+```
+Khởi tạo các file static
+```
+sudo ./scripts/copy_static
+```
+Load các dữ liệu cần thiết cho Website
+```
+sudo ./scripts/manage.py loaddata navbar
+sudo ./scripts/manage.py loaddata language_small
+sudo ./scripts/manage.py loaddata demo
+```
+### Sử dụng VNOJ Site
+Quá trình cài đặt đến đây đã hoàn tất. Chạy câu lệnh bên dưới để khởi động tất cả các docker container.
+```
+sudo docker-compose up –d
+```
+Truy cập http://oj.togethercpp.xyz để kiểm tra kết quả (sử dụng IP Server hoặc Domain đã cấu hình từ trên thay thế cho `oj.togethercpp.xyz`).
 
-#### Worker
+Truy cập bài tập mẫu A+B và tiến hành upload testcase để kiểm tra.
+## Cài đặt judge
+Để đơn giản trong quá trình cài đặt, chúng ta sẽ tiếp tục cài đặt judge sử dụng Docker
+> Note:<br>
+	- Nếu cài đặt judge chạy trên Local Server, không cần cài đặt lại Docker.<br>
+	- Nếu cài đặt judge trên Remote Judge, tiến hành cài đặt Docker theo hướng dẫn bên trên (không cần cài Docker-Compose)
+> 
+### Thiết lập cấu hình judge trên admin site
+Truy cập http://oj.togethercpp.xyz/admin/judge/ (sử dụng IP Server hoặc Domain đã cấu hình từ trên thay thế cho `oj.togethercpp.xyz`).
+Tạo các judge, lưu lại tên judge id và key (ví dụ ở đây tạo 03 judge là judge01, judge02, judge03)
+### Tạo môi trường biên dịch 
+Tải về môi trường biên dịch (thực hiện trên Local Server và Remote Judge)
+```
+git clone https://github.com/togethercpp/judge-server
+cd judge-server/.docker
+sudo apt install make
+sudo make judge-tiervnoj
+```
+Có thể thay thế `tiervnoj` bằng `tier1`, `tier2`, `tier3` (tier càng cao thì dung lượng càng lớn, càng được tích hợp nhiều ngôn ngữ hơn).
 
-You need to configure `dmoj/environment/site.env` and `dmoj/environment/mysql.env` to point to the central server.
+### Tạo judge trên Server
+Tạo các file cấu hình tương ứng với mỗi judge có dạng là `judge_name.yml` (tên judge) và ghi những thông tin sau vào file:
+```
+id: <judge name>
+key: <judge authentication key>
+problem_storage_globs:
+  - /problems/*
+```
+Ở đây, ta sẽ chạy 2 máy chấm `judge01` và `judge02` trên Local Server
 
-```sh
-docker compose up -d nginx site celery
+Build Docker Image
+```
+sudo docker run \
+    --name judge01 \
+    --network="host" \
+    -v /home/tcoj/tcoj-docker/dmoj/problems:/problems \
+    --cap-add=SYS_PTRACE \
+    -d \
+    --restart=always \
+    vnoj/judge-tiervnoj:latest \
+    run -p 9999 -c /problems/judge01.yml localhost -A 0.0.0.0 -a 9111
+```
+> Note: <br>
+	- Với mỗi judge, cần thay thế judge01 (judge name), judge01.yml (judge config), 9111 (PID) tương ứng khác nhau.<br>
+	- Các judge chạy trên cùng Local Server phải có ID khác nhau (thay 9111 thành 9112, 9113, ...)
+    - Thay thế đường dẫn đến file docker OJ VD: `/home/tcoj/vnoj-docker/dmoj/` -> `/home/deptraicogisai6969/vnoj-docker/dmoj/`
+
+### Kiểm tra trạng thái của máy chấm
+Mở Docker logs để kiểm tra kết quả cài đặt Judge
+```
+sudo docker logs -ft judge01
 ```
