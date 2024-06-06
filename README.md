@@ -152,7 +152,7 @@ sudo docker run \
 > Note: <br>
 	- Với mỗi judge, cần thay thế judge01 (judge name), judge01.yml (judge config), 9111 (PID) tương ứng khác nhau.<br>
 	- Các judge chạy trên cùng Local Server phải có ID khác nhau (thay 9111 thành 9112, 9113, ...)
-    - Thay thế đường dẫn đến file docker OJ VD: `/home/tcoj/vnoj-docker/dmoj/` -> `/home/deptraicogisai6969/vnoj-docker/dmoj/`
+    - Thay thế đường dẫn đến file docker OJ VD: `/home/tcoj/tcoj-docker/dmoj/` -> `/home/deptraicogisai6969/tcoj-docker/dmoj/`
 
 ### Kiểm tra trạng thái của máy chấm
 Mở Docker logs để kiểm tra kết quả cài đặt Judge
