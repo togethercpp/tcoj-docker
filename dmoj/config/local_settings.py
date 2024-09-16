@@ -6,27 +6,30 @@
 # Django - many of these settings below have external documentation about them.
 #
 # The settings listed here are of special interest in configuring the site.
-
+# 
 # SECURITY WARNING: keep the secret key used in production secret!
 # You may use this command to generate a key:
 # python3 -c 'from django.core.management.utils import get_random_secret_key;print(get_random_secret_key())'
 SECRET_KEY = os.environ.get('SECRET_KEY', '')
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = os.environ.get('DEBUG', '0') == '1'  # Change to False once you are done with runserver testing.
 HOST = os.environ.get('HOST', 'localhost')
+MOSS_API_KEY = os.environ.get('MOSS_API_KEY', '000000000')
 
 # Uncomment and set to the domain names this site is intended to serve.
 # You must do this once you set DEBUG to False.
 ALLOWED_HOSTS = [HOST]
 
 # Optional apps that DMOJ can make use of.
-INSTALLED_APPS += ()
+INSTALLED_APPS += (
+)
 
 # Caching. You can use memcached or redis instead.
 # Documentation: <https://docs.djangoproject.com/en/3.2/topics/cache/>
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': os.environ.get('REDIS_CACHING_URL', 'redis://redis:6379/0'),
     },
 }
@@ -90,6 +93,8 @@ STATICFILES_FINDERS += ('compressor.finders.CompressorFinder',)
 #EMAIL_HOST_PASSWORD = '<your password>'
 #EMAIL_PORT = 587
 
+SEND_ACTIVATION_EMAIL = False
+
 # To use Mailgun, uncomment this block.
 # You will need to run `pip install django-mailgun` to get `MailgunBackend`.
 #EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
@@ -108,7 +113,7 @@ STATICFILES_FINDERS += ('compressor.finders.CompressorFinder',)
 ADMINS = ()
 
 # The sender for the aforementioned emails.
-SERVER_EMAIL = 'VNOJ: VNOI Online Judge <vnoj@vnoi.info>'
+SERVER_EMAIL = 'oj@togethercpp.xyz'
 
 
 ################################################
@@ -120,25 +125,24 @@ SERVER_EMAIL = 'VNOJ: VNOI Online Judge <vnoj@vnoi.info>'
 # webserver to serve the static files. This is the directory where all the
 # static files DMOJ uses will be collected to.
 # You must configure your webserver to serve this directory as /static/ in production.
-STATIC_ROOT = '/assets/static/'
+STATIC_ROOT = '/home/cs2/tmp/static'
 
 # URL to access static files.
 STATIC_URL = '/static/'
 
 # Uncomment to use hashed filenames with the cache framework.
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-DMOJ_RESOURCES = '/assets/resources/'
 
 ############################################
 ########## DMOJ-specific settings ##########
 ############################################
 
 ## DMOJ site display settings.
-SITE_NAME = 'VNOJ'
+SITE_NAME = 'CKTOJ'
 SITE_FULL_URL = os.environ.get('SITE_FULL_URL', 'http://localhost/')
-SITE_LONG_NAME = 'VNOJ: VNOI Online Judge'
-SITE_ADMIN_EMAIL = 'leduythuc@vnoi.info'
+SITE_LONG_NAME = 'CKTOJ: THPT Chuyen Nguyen Tat Thanh Kon Tum Online Judge'
+SITE_ADMIN_EMAIL = 'oj@togethercpp.xyz'
 TERMS_OF_SERVICE_URL = None
 
 ## Media files settings.
@@ -245,34 +249,34 @@ TIMEZONE_MAP = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Blue_M
 #DMOJ_PDF_PROBLEM_INTERNAL = '/pdfcache'
 
 ## Data download settings.
-# Uncomment to allow users to download their data
-DMOJ_USER_DATA_DOWNLOAD = True
+# Uncomment to allow users to download their data.
+#DMOJ_USER_DATA_DOWNLOAD = True
 
 # Directory to cache user data downloads.
 # It is the administrator's responsibility to clean up old files.
-DMOJ_USER_DATA_CACHE = '/userdatacache'
+#DMOJ_USER_DATA_CACHE = '/home/dmoj-uwsgi/userdatacache'
 
 # Path to use for nginx's X-Accel-Redirect feature.
 # Should be an internal location mapped to the above directory.
-DMOJ_USER_DATA_INTERNAL = '/userdatacache'
+#DMOJ_USER_DATA_INTERNAL = '/userdatacache'
 
 # How often a user can download their data.
-DMOJ_USER_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
+#DMOJ_USER_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
 
 # Uncomment to allow contest authors to download contest data
-DMOJ_CONTEST_DATA_DOWNLOAD = True
+#DMOJ_CONTEST_DATA_DOWNLOAD = True
 
 # Directory to cache contest data downloads.
 # It is the administrator's responsibility to clean up old files.
-DMOJ_CONTEST_DATA_CACHE = '/contestdatacache'
+#DMOJ_CONTEST_DATA_CACHE = '/home/dmoj-uwsgi/contestdatacache'
 
 # Path to use for nginx's X-Accel-Redirect feature.
 # Should be an internal location mapped to the above directory.
-DMOJ_CONTEST_DATA_INTERNAL = '/contestdatacache'
+#DMOJ_CONTEST_DATA_INTERNAL = '/contestdatacache'
 
 # How often contest data can be exported.
 # This applies per contest, not per user.
-DMOJ_CONTEST_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
+#DMOJ_CONTEST_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
 
 ## ======== Logging Settings ========
 # Documentation: https://docs.djangoproject.com/en/3.2/ref/settings/#logging
@@ -289,6 +293,19 @@ LOGGING = {
         },
     },
     'handlers': {
+        # You may use this handler as an example for logging to other files.
+        'bridge': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '<desired bridge log path>',
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'file',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'dmoj.throttle_mail.ThrottledEmailHandler',
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -296,6 +313,18 @@ LOGGING = {
         },
     },
     'loggers': {
+        # Site 500 error mails.
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # Judging logs as received by bridged.
+        'judge.bridge': {
+            'handlers': ['bridge', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         # Catch all logs to stderr.
         '': {
             'handlers': ['console'],
@@ -323,7 +352,3 @@ LOGGING = {
 ## ======== Custom Configuration ========
 # You may add whatever Django configuration you would like here.
 # Do try to keep it separate so you can quickly patch in new settings.
-
-FILE_UPLOAD_PERMISSIONS = 0o644
-
-VNOJ_CP_TICKET = 5
