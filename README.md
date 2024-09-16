@@ -1,6 +1,6 @@
-# VNOJ Docker
+# CKTOJ Docker
 
-This repository contains the Docker files to run the [VNOJ](https://github.com/VNOI-Admin/OJ).
+This repository contains the Docker files to run the [CKTOJ](https://github.com/CKTOJ/OJ).
 
 Based on [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker).
 
@@ -11,8 +11,8 @@ First, [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docke
 Clone the repository:
 
 ```sh
-$ git clone --recursive https://github.com/VNOI-Admin/vnoj-docker.git
-$ cd vnoj-docker/dmoj
+$ git clone --recursive https://github.com/CKTOJ/cktoj-docker.git
+$ cd v/dmoj
 ```
 
 From now on, it is assumed you are in the `dmoj` directory.
@@ -85,150 +85,4 @@ To stop everything:
 
 ```sh
 $ docker compose down
-```
-
-## Notes
-
-### Judge server
-
-The judge server is not included in this Docker setup. Please refer to [Setting up a Judge](https://vnoi-admin.github.io/vnoj-docs/#/judge/setting_up_a_judge).
-
-The bridge instance is included in this Docker setup and should be running once you start everything.
-
-### Migrating
-
-As the VNOJ site is a Django app, you may need to migrate whenever you update. Assuming the site container is running, running the following command should suffice:
-
-```sh
-$ ./scripts/migrate
-```
-
-### Managing Static Files
-
-If your static files ever change, you will need to rebuild them:
-
-```sh
-$ ./scripts/copy_static
-```
-
-### Updating The Site
-
-Updating various sections of the site requires different images to be rebuilt.
-
-If any prerequisites were modified, you will need to rebuild most of the images:
-
-```sh
-$ docker compose up -d --build base site celery bridged wsevent
-```
-
-If the static files are modified, read the section on [Managing Static Files](#managing-static-files).
-
-If only the source code is modified, a restart is sufficient:
-
-```sh
-$ docker compose restart site celery bridged wsevent
-```
-
-### Multiple Nginx Instances
-
-The `docker-compose.yml` configures Nginx to publish to port 80. If you have another Nginx instance on your host machine, you may want to change the port and proxy pass instead.
-
-For example, a possible Nginx configuration file on your host machine would be:
-
-```
-server {
-    listen 80;
-    listen [::]:80;
-
-    add_header X-UA-Compatible "IE=Edge,chrome=1";
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
-
-    location / {
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_set_header Host $http_host;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_pass http://127.0.0.1:10080/;
-    }
-}
-```
-
-In this case, the port that the Nginx instance in the Docker container is published to would need to be modified to `10080`.
-
-### Load balancing
-
-By default, all services (site, bridged, wsevent, db, celery, redis, etc.) run in the same machine. However, it is not ideal for handling a large number of users. In this case, you need to distribute the services to multiple servers. A typical setup would be:
-
-- One central server for nginx, db, redis, bridged, and wsevent
-- Multiple workers, each will run nginx, site, and celery
-
-#### Central server
-
-You need to configure `dmoj/nginx/conf.d/nginx.conf` to distribute traffic to workers. Refer to [Nginx docs](https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer/) for how to do it.
-
-A sample configuration:
-
-```
-upstream site {
-    ip_hash;
-    server srv1.example.com;
-    server srv2.example.com;
-    server srv3.example.com;
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-
-    location / {
-        proxy_http_version 1.1;
-        proxy_buffering off;
-        proxy_set_header Host $http_host;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_pass http://site/;
-    }
-
-    location /event/ {
-        proxy_pass http://wsevent:15100/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 86400;
-    }
-
-    location /channels/ {
-        proxy_read_timeout 120;
-        proxy_pass http://wsevent:15102/;
-    }
-}
-```
-
-Uncomment `ports` blocks in `dmoj/docker-compose.yml`. You also need to open these ports for workers to connect to:
-
-- db: 3306
-- redis: 6379
-- bridged: 9998 9999
-- wsevent: 15100 15101 15102
-
-Now, let's start the services:
-
-```sh
-docker compose up -d nginx db redis bridged wsevent
-```
-
-#### Worker
-
-You need to configure `dmoj/environment/site.env` and `dmoj/environment/mysql.env` to point to the central server.
-
-```sh
-docker compose up -d nginx site celery
 ```
