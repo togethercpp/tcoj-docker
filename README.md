@@ -6,13 +6,34 @@ Based on [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker).
 
 ## Installation
 
-First, [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed. Installation instructions can be found on their respective websites.
+Set up Docker's apt repository.
+```
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+Install the Docker packages.
+```
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io 
+```
+Install the Docker compose.
+```
+sudo apt-get update
+sudo apt-get install docker-compose-plugin
+```
 Clone the repository:
 
 ```sh
 $ git clone --recursive https://github.com/CKTOJ/cktoj-docker.git
-$ cd v/dmoj
+$ cd cktoj-docker/dmoj
 ```
 
 From now on, it is assumed you are in the `dmoj` directory.
@@ -62,7 +83,6 @@ Finally, the VNOJ comes with fixtures so that the initial install is not blank. 
 ```sh
 $ ./scripts/manage.py loaddata navbar
 $ ./scripts/manage.py loaddata language_small
-$ ./scripts/manage.py loaddata demo
 ```
 
 Keep in mind that the demo fixture creates a superuser account with a username and password of `admin`. You should change the user's password or remove the user entirely.

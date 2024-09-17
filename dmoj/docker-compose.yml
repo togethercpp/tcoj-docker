@@ -102,7 +102,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - assets:/assets/
+      - /tmp/:/assets/
       - userdatacache:/userdatacache/
       - contestdatacache:/contestdatacache/
       - cache:/cache/
@@ -115,7 +115,6 @@ networks:
   db:
   nginx:
 volumes:
-  assets:
   userdatacache:
   contestdatacache:
   cache:

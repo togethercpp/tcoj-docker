@@ -2,14 +2,15 @@
 cd $(dirname $(dirname $0)) || exit
 
 docker compose exec $COMPOSE_EXEC_FLAGS site /bin/bash -c "\
+    mkdir /tmp/static \
     bash make_style.sh && \
     python3 manage.py collectstatic --noinput && \
     python3 manage.py compilemessages && \
     python3 manage.py compilejsi18n && \
-    cp -r resources/ /assets/ && \
+    cp -r resources/ /tmp/static && \
     rm resources/style.css resources/martor-description.css resources/select2-dmoj.css && \
     rm resources/dark/style.css resources/dark/martor-description.css resources/dark/select2-dmoj.css && \
     rm -r sass_processed && \
-    cp 502.html /assets/ && \
-    cp logo.png /assets/ && \
-    cp robots.txt /assets/"
+    cp 502.html /tmp/ && \
+    cp logo.png /tmp/ && \
+    cp robots.txt /tmp/"
