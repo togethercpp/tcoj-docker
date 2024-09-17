@@ -102,8 +102,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./repo/resources/:/assets/
-      - ./repo/:/site/:/site/
+      - assets:/assets/
       - userdatacache:/userdatacache/
       - contestdatacache:/contestdatacache/
       - cache:/cache/
