@@ -12,7 +12,7 @@ Clone the repository:
 
 ```sh
 $ git clone --recursive https://github.com/CKTOJ/cktoj-docker.git
-$ cd v/dmoj
+$ cd cktoj-docker/dmoj
 ```
 
 From now on, it is assumed you are in the `dmoj` directory.
