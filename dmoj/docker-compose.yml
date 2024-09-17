@@ -32,7 +32,7 @@ services:
     init: true
     restart: unless-stopped
     volumes:
-      - assets:/assets/
+      - /tmp/:/assets/
       - userdatacache:/userdatacache/
       - contestdatacache:/contestdatacache/
       - cache:/cache/
