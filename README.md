@@ -84,6 +84,7 @@ Finally, the VNOJ comes with fixtures so that the initial install is not blank. 
 ```sh
 $ ./scripts/manage.py loaddata navbar
 $ ./scripts/manage.py loaddata language_small
+$ ./scripts/manage.py loaddata demo
 ```
 
 Keep in mind that the demo fixture creates a superuser account with a username and password of `admin`. You should change the user's password or remove the user entirely.
