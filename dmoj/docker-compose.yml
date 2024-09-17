@@ -32,7 +32,7 @@ services:
     init: true
     restart: unless-stopped
     volumes:
-      - /tmp/:/assets/
+      - assets:/assets/
       - userdatacache:/userdatacache/
       - contestdatacache:/contestdatacache/
       - cache:/cache/
@@ -102,7 +102,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - /tmp/:/assets/
+      - assets:/assets/
       - userdatacache:/userdatacache/
       - contestdatacache:/contestdatacache/
       - cache:/cache/
@@ -115,6 +115,7 @@ networks:
   db:
   nginx:
 volumes:
+  assets:
   userdatacache:
   contestdatacache:
   cache:
