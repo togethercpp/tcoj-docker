@@ -139,9 +139,9 @@ STATIC_URL = '/static/'
 ############################################
 
 ## DMOJ site display settings.
-SITE_NAME = 'CKTOJ'
+SITE_NAME = 'TCOJ'
 SITE_FULL_URL = os.environ.get('SITE_FULL_URL', 'http://localhost/')
-SITE_LONG_NAME = 'CKTOJ: THPT Chuyen Nguyen Tat Thanh Kon Tum Online Judge'
+SITE_LONG_NAME = 'TCOJ: Together Cpp Online Judge'
 SITE_ADMIN_EMAIL = 'oj@togethercpp.xyz'
 TERMS_OF_SERVICE_URL = None
 

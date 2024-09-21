@@ -1,6 +1,6 @@
-# CKTOJ Docker
+# TCOJ Docker
 
-This repository contains the Docker files to run the [CKTOJ](https://github.com/CKTOJ/OJ).
+This repository contains the Docker files to run the [TCOJ](https://github.com/togethercpp/OJ).
 
 Based on [dmoj-docker](https://github.com/Ninjaclasher/dmoj-docker).
 
@@ -32,8 +32,8 @@ sudo apt-get install docker-compose-plugin
 Clone the repository:
 
 ```sh
-$ git clone --recursive https://github.com/CKTOJ/cktoj-docker.git
-$ cd cktoj-docker/dmoj
+$ git clone --recursive https://github.com/togethercpp/tcoj-docker.git
+$ cd tcoj-docker/dmoj
 ```
 
 From now on, it is assumed you are in the `dmoj` directory.
