@@ -75,7 +75,6 @@ $ ./scripts/migrate
 You will also need to generate the static files:
 
 ```sh
-$ mkdir /tmp/static
 $ ./scripts/copy_static
 ```
 
